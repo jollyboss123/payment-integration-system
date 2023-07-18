@@ -5,7 +5,7 @@ package com.jolly.paymentintegrationsystem
  */
 interface BaseResponse {
     val payload: String?
-    val respCode: String
-    val respDesc: String
+    val respCode: String?
+    val respDesc: String?
 }
 

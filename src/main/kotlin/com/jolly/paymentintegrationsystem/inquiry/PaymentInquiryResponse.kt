@@ -7,9 +7,9 @@ import java.math.BigDecimal
  * @author jolly
  */
 data class PaymentInquiryResponse(
-    override val payload: String,
-    override val respCode: String,
-    override val respDesc: String,
+    override val payload: String?,
+    override val respCode: String?,
+    override val respDesc: String?,
 
     val merchantID: String,
     val invoiceNo:String,
