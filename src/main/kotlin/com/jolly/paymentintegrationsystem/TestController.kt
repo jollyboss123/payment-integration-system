@@ -1,5 +1,6 @@
 package com.jolly.paymentintegrationsystem
 
+import com.jolly.paymentintegrationsystem.payment.PaymentResponseParams
 import com.jolly.paymentintegrationsystem.payment.PaymentService
 import com.jolly.paymentintegrationsystem.payment.PaymentTokenRequest
 import com.jolly.paymentintegrationsystem.payment.PaymentTokenResponse
@@ -25,7 +26,7 @@ class TestController(
 //    }
 
     @PostMapping("/2c2p")
-    suspend fun payment(@RequestBody paymentRequest: PaymentTokenRequest): PaymentTokenResponse {
+    suspend fun payment(@RequestBody paymentRequest: PaymentRequest): PaymentResponseParams {
         return paymentClient.doNon3DSPayment(paymentRequest)
     }
 }

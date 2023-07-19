@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
+import reactor.core.publisher.Mono
 
 /**
  * @author jolly
@@ -43,8 +44,8 @@ class PaymentServiceImpl(
 
         return webClient.post()
             .uri(paymentUrl)
-            .body(paymentRequestParams, PaymentRequestParams::class.java)
+            .body(Mono.just(paymentRequestParams), PaymentRequestParams::class.java)
             .retrieve()
-            .awaitBody()
+            .awaitBody() //TODO: await exchange and handle diff status codes
     }
 }
