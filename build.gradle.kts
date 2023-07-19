@@ -40,12 +40,17 @@ dependencies {
     implementation("com.googlecode.json-simple:json-simple:1.1.1")
     implementation("com.auth0:java-jwt:4.4.0")
     implementation("io.konform:konform-jvm:0.4.0")
+    implementation("org.springframework.integration:spring-integration-amqp")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.73.Final:osx-aarch_64")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.integration:spring-integration-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
 
 tasks.withType<KotlinCompile> {

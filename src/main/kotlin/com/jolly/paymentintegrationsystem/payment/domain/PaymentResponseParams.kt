@@ -1,6 +1,6 @@
-package com.jolly.paymentintegrationsystem.payment
+package com.jolly.paymentintegrationsystem.payment.domain
 
-import com.jolly.paymentintegrationsystem.BaseResponse
+import com.jolly.paymentintegrationsystem.domain.BaseResponse
 
 /**
  * @author jolly

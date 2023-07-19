@@ -28,6 +28,14 @@ resilience4j:
       payment:
         base-config: shared
 
+spring:
+  rabbitmq:
+    host: localhost
+    username: user
+    password: password
+
 logging:
   level:
     com.jolly: TRACE
+    org.springframework.amqp: DEBUG
+    org.springframework.integration: DEBUG

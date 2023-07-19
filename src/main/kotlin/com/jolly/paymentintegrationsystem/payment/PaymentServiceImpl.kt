@@ -3,7 +3,10 @@ package com.jolly.paymentintegrationsystem.payment
 import com.auth0.jwt.JWT
 import com.jolly.paymentintegrationsystem.extensions.exchangeToken
 import com.jolly.paymentintegrationsystem.extensions.getClaimAsString
-import com.jolly.paymentintegrationsystem.extensions.verifyPayload
+import com.jolly.paymentintegrationsystem.payment.domain.PaymentRequestParams
+import com.jolly.paymentintegrationsystem.payment.domain.PaymentResponseParams
+import com.jolly.paymentintegrationsystem.payment.domain.PaymentTokenRequest
+import com.jolly.paymentintegrationsystem.payment.domain.PaymentTokenResponse
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service

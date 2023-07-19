@@ -1,4 +1,4 @@
-package com.jolly.paymentintegrationsystem
+package com.jolly.paymentintegrationsystem.domain
 
 /**
  * @author jolly

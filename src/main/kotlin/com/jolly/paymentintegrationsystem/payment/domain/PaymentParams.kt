@@ -1,4 +1,4 @@
-package com.jolly.paymentintegrationsystem.payment
+package com.jolly.paymentintegrationsystem.payment.domain
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.jolly.paymentintegrationsystem.extensions.validateAndThrowOnFailure

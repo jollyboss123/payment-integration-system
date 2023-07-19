@@ -1,12 +1,16 @@
-package com.jolly.paymentintegrationsystem
+package com.jolly.paymentintegrationsystem.pipeline
 
 import com.jolly.paymentintegrationsystem.PaymentClient.Companion.PAYMENT_REPLIES_CHANNEL
 import com.jolly.paymentintegrationsystem.PaymentClient.Companion.PAYMENT_REQUESTS_CHANNEL
-import com.jolly.paymentintegrationsystem.inquiry.PaymentInquiryRequest
-import com.jolly.paymentintegrationsystem.inquiry.PaymentInquiryResponse
+import com.jolly.paymentintegrationsystem.domain.PaymentRequest
+import com.jolly.paymentintegrationsystem.domain.PaymentResponse
+import com.jolly.paymentintegrationsystem.inquiry.domain.PaymentInquiryRequest
+import com.jolly.paymentintegrationsystem.inquiry.domain.PaymentInquiryResponse
 import com.jolly.paymentintegrationsystem.inquiry.PaymentInquiryService
 import com.jolly.paymentintegrationsystem.payment.*
+import com.jolly.paymentintegrationsystem.payment.domain.*
 import kotlinx.coroutines.*
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
@@ -31,7 +35,7 @@ class Non3DSPaymentPipeline(
     private val paymentInquiryService: PaymentInquiryService
 ) {
     companion object {
-        val logger = LoggerFactory.getLogger(this::class.java)
+        val logger: Logger = LoggerFactory.getLogger(this::class.java)
         const val PAYMENT_TOKEN_IN = "payment.token.in"
         const val PAYMENT_TOKEN_OUT = "payment.token.out"
         const val PAYMENT_IN = "payment.in"
@@ -81,11 +85,11 @@ class Non3DSPaymentPipeline(
             }
             transform<PaymentRequest> {
                 PaymentTokenRequest(
-                    merchantID = it.merchantID,
-                    invoiceNo = it.invoiceNo,
-                    description = it.description,
+                    merchantID = it.merchantID!!,
+                    invoiceNo = it.invoiceNo!!,
+                    description = it.description!!,
                     amount = it.amount,
-                    currencyCode = it.currencyCode,
+                    currencyCode = it.currencyCode!!,
                     paymentChannel = it.paymentChannel,
                     request3DS = false
                 )

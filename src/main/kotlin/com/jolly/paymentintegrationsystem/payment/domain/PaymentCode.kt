@@ -1,4 +1,4 @@
-package com.jolly.paymentintegrationsystem.payment
+package com.jolly.paymentintegrationsystem.payment.domain
 
 import com.jolly.paymentintegrationsystem.extensions.validateAndThrowOnFailure
 import io.konform.validation.Validation
