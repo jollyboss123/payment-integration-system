@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.amqp.dsl.Amqp
 import org.springframework.integration.annotation.ServiceActivator
-import org.springframework.integration.channel.NullChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.*
 import org.springframework.integration.handler.LoggingHandler
@@ -22,7 +21,6 @@ import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.support.ErrorMessage
-import org.springframework.messaging.support.MessageBuilder
 
 
 /**
@@ -37,9 +35,6 @@ class BulkNon3DSPaymentPipeline {
 
     @Bean(name = [BULK_PAYMENT_REQUESTS_CHANNEL])
     fun bulkPaymentIn(): MessageChannel = MessageChannels.direct().`object`
-
-//    @Bean(name = ["nullChannel"])
-//    fun nullChannel(): MessageChannel = NullChannel()
 
     @Bean
     @ServiceActivator(inputChannel = "errorChannel")
