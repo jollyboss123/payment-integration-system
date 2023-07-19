@@ -8,8 +8,8 @@ import io.konform.validation.Validation
  */
 data class PaymentCode(
     val channelCode: String,
-    val agentCode: String,
-    val agentChannelCode: String
+    val agentCode: String? = null,
+    val agentChannelCode: String? = null
 ) {
     fun validate(): PaymentCode {
         Validation {

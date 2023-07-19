@@ -69,15 +69,15 @@ fun Map<String, Claim>.getClaimAsString(claimKey: String): String {
     return getClaimAs(claimKey) { it.asString() }
 }
 
-fun Map<String, Claim>.getClaimAsCharacter(claimKey: String): Char? {
+fun Map<String, Claim>.getClaimAsCharacter(claimKey: String): Char {
     return getClaimAs(claimKey) { it.`as`(Char::class.java) }
 }
 
-fun Map<String, Claim>.getClaimAsLong(claimKey: String): Long? {
+fun Map<String, Claim>.getClaimAsLong(claimKey: String): Long {
     return getClaimAs(claimKey) { it.asLong() }
 }
 
-fun Map<String, Claim>.getClaimAsInt(claimKey: String): Int? {
+fun Map<String, Claim>.getClaimAsInt(claimKey: String): Int {
     return getClaimAs(claimKey) { it.asInt() }
 }
 

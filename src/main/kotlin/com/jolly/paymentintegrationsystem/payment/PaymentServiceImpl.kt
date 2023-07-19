@@ -3,9 +3,11 @@ package com.jolly.paymentintegrationsystem.payment
 import com.auth0.jwt.JWT
 import com.jolly.paymentintegrationsystem.extensions.exchangeToken
 import com.jolly.paymentintegrationsystem.extensions.getClaimAsString
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.awaitBody
 
 /**
  * @author jolly
@@ -14,12 +16,19 @@ import org.springframework.web.reactive.function.client.WebClient
 class PaymentServiceImpl(
     private val webClient: WebClient,
     @Value("\${payment.token.url}") private val paymentTokenUrl: String,
+    @Value("\${payment.url}") private val paymentUrl: String,
     @Value("\${merchant.secret.key}") private val merchantSecretKey: String
 ) : PaymentService {
+    companion object {
+        val logger = LoggerFactory.getLogger(this::class.java)
+    }
     override suspend fun generatePaymentToken(request: PaymentTokenRequest): PaymentTokenResponse {
-        val response: PaymentTokenResponse = webClient.exchangeToken(request, merchantSecretKey, paymentTokenUrl, PaymentTokenResponse::class.java)
+        logger.info("generating payment token start")
+        val paymentTokenRequest = request.validate()
+        val response: PaymentTokenResponse = webClient.exchangeToken(paymentTokenRequest, merchantSecretKey, paymentTokenUrl, PaymentTokenResponse::class.java)
         val jwt = JWT.decode(response.payload)
         val responseData = jwt.claims
+        logger.info("generating payment token end")
 
         return PaymentTokenResponse(
             paymentToken = responseData.getClaimAsString("paymentToken"),
@@ -27,5 +36,15 @@ class PaymentServiceImpl(
             respDesc = responseData.getClaimAsString("respDesc"),
             payload = null
         )
+    }
+
+    override suspend fun doPayment(request: PaymentRequestParams): PaymentResponseParams {
+        val paymentRequestParams = request.validate()
+
+        return webClient.post()
+            .uri(paymentUrl)
+            .body(paymentRequestParams, PaymentRequestParams::class.java)
+            .retrieve()
+            .awaitBody()
     }
 }

@@ -15,12 +15,17 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/jolly/v1/payment/integration")
 class TestController(
-    private val paymentService: PaymentService
+    private val paymentService: PaymentService,
+    private val paymentClient: PaymentClient
 ) {
-    @CircuitBreaker(name = "test")
+//    @CircuitBreaker(name = "test")
+//    @PostMapping("/2c2p")
+//    suspend fun payment(@RequestBody paymentTokenRequest: PaymentTokenRequest): PaymentTokenResponse {
+//        return paymentService.generatePaymentToken(paymentTokenRequest)
+//    }
+
     @PostMapping("/2c2p")
-    suspend fun payment(@RequestBody paymentTokenRequest: PaymentTokenRequest): PaymentTokenResponse {
-        val request = paymentTokenRequest.validate()
-        return paymentService.generatePaymentToken(request)
+    suspend fun payment(@RequestBody paymentRequest: PaymentTokenRequest): PaymentTokenResponse {
+        return paymentClient.doNon3DSPayment(paymentRequest)
     }
 }

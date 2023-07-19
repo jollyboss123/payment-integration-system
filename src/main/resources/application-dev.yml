@@ -27,3 +27,7 @@ resilience4j:
     instances:
       test:
         base-config: shared
+
+logging:
+  level:
+    com.jolly: TRACE

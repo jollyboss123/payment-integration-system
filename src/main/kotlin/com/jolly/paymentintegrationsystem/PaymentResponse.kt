@@ -1,18 +1,13 @@
-package com.jolly.paymentintegrationsystem.inquiry
+package com.jolly.paymentintegrationsystem
 
-import com.jolly.paymentintegrationsystem.BaseResponse
 import java.math.BigDecimal
 
 /**
  * @author jolly
  */
-data class PaymentInquiryResponse(
-    override val payload: String?,
-    override val respCode: String?,
-    override val respDesc: String?,
-
+data class PaymentResponse(
     val merchantID: String,
-    val invoiceNo:String,
+    val invoiceNo: String,
     val amount: BigDecimal,
     val currencyCode: String,
     val transactionDateTime: String,
@@ -23,5 +18,7 @@ data class PaymentInquiryResponse(
     val issuerCountry: String,
     val issuerBank: String,
     val eci: String,
-    val paymentScheme: String
-) : BaseResponse
+    val paymentScheme: String,
+    val respCode: String,
+    val respDesc: String
+)
