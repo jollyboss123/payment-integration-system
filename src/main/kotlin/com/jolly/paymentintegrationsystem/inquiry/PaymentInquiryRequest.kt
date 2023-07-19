@@ -7,7 +7,7 @@ import io.konform.validation.Validation
  * @author jolly
  */
 data class PaymentInquiryRequest(
-    val paymentToken: String,
+    val paymentToken: String? = null,
     val merchantID: String,
     val invoiceNo: String,
     val locale: String

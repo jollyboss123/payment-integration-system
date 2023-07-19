@@ -96,8 +96,8 @@ suspend inline fun <reified R: BaseResponse> WebClient.exchangeToken(request: An
         .awaitExchange { responseEntity ->
             val responseBody = responseEntity.awaitBody<R>()
             if (responseEntity.statusCode().isError) {
-                throw RestClientException("JWT request failed withs status code: ${responseEntity.statusCode()}")
-            } else if (responseBody.payload == null || responseBody.payload!!.isEmpty()) {
+                throw RestClientException("JWT request failed with status code: ${responseEntity.statusCode()}")
+            } else if (responseBody.payload.isNullOrEmpty()) {
                 throw RestClientException("Payload received is null or empty, respCode: ${responseBody.respCode}, respDesc: ${responseBody.respDesc}")
             } else {
                 verifyPayload(responseBody.payload!!, secretKey)

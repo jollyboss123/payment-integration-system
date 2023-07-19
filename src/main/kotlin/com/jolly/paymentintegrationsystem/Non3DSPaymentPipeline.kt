@@ -2,6 +2,8 @@ package com.jolly.paymentintegrationsystem
 
 import com.jolly.paymentintegrationsystem.PaymentClient.Companion.PAYMENT_REPLIES_CHANNEL
 import com.jolly.paymentintegrationsystem.PaymentClient.Companion.PAYMENT_REQUESTS_CHANNEL
+import com.jolly.paymentintegrationsystem.inquiry.PaymentInquiryRequest
+import com.jolly.paymentintegrationsystem.inquiry.PaymentInquiryResponse
 import com.jolly.paymentintegrationsystem.inquiry.PaymentInquiryService
 import com.jolly.paymentintegrationsystem.payment.*
 import kotlinx.coroutines.*
@@ -16,11 +18,9 @@ import org.springframework.integration.dsl.IntegrationFlow
 import org.springframework.integration.dsl.MessageChannels
 import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.handler.LoggingHandler
-import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.messaging.handler.annotation.Payload
-
 /**
  * @author jolly
  */
@@ -36,28 +36,25 @@ class Non3DSPaymentPipeline(
         const val PAYMENT_TOKEN_OUT = "payment.token.out"
         const val PAYMENT_IN = "payment.in"
         const val PAYMENT_OUT = "payment.out"
+        const val PAYMENT_INQUIRY_IN = "payment.inquiry.in"
+        const val PAYMENT_INQUIRY_OUT = "payment.inquiry.out"
+
         const val CARD_NO = "card.no"
         const val EXPIRY_YEAR = "expiry.year"
         const val EXPIRY_MONTH = "expiry.month"
+        const val MERCHANT_ID = "merchant.id"
         const val LOCALE = "en"
         const val CREDIT_CARD_CHANNEL = "CC"
     }
 
-    @Bean(name = [PAYMENT_REQUESTS_CHANNEL])
-    fun paymentRequests(): MessageChannel {
-        return MessageChannels.direct().`object`
-    }
-
-    @Bean(name = [PAYMENT_REPLIES_CHANNEL])
-    fun paymentReplies(): MessageChannel {
-        return MessageChannels.direct().`object`
-    }
-
-    @Bean(name = [PAYMENT_TOKEN_IN]) fun paymentTokenIn() = MessageChannels.direct().`object`
-    @Bean(name = [PAYMENT_TOKEN_OUT]) fun paymentTokenOut() = MessageChannels.direct().`object`
-
-    @Bean(name = [PAYMENT_IN]) fun paymentIn() = MessageChannels.direct().`object`
-    @Bean(name = [PAYMENT_OUT]) fun paymentOut() = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_REQUESTS_CHANNEL]) fun paymentRequests(): MessageChannel = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_REPLIES_CHANNEL]) fun paymentReplies(): MessageChannel = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_TOKEN_IN]) fun paymentTokenIn(): MessageChannel = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_TOKEN_OUT]) fun paymentTokenOut(): MessageChannel = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_IN]) fun paymentIn(): MessageChannel = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_OUT]) fun paymentOut(): MessageChannel = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_INQUIRY_IN]) fun paymentInquiryIn(): MessageChannel = MessageChannels.direct().`object`
+    @Bean(name = [PAYMENT_INQUIRY_OUT]) fun paymentInquiryOut(): MessageChannel = MessageChannels.direct().`object`
 
     @Bean
     suspend fun inboundPaymentPipeline(@Qualifier(PAYMENT_REQUESTS_CHANNEL) paymentRequest: MessageChannel,
@@ -72,6 +69,9 @@ class Non3DSPaymentPipeline(
                 }
                 this.headerFunction<PaymentRequest>(EXPIRY_YEAR) {
                     it.payload.expiryYear
+                }
+                this.headerFunction<PaymentRequest>(MERCHANT_ID) {
+                    it.payload.merchantID
                 }
             }
             log<String>(LoggingHandler.Level.INFO, "com.jolly") {
@@ -94,20 +94,82 @@ class Non3DSPaymentPipeline(
         }
 
     @ServiceActivator(inputChannel = PAYMENT_TOKEN_IN, outputChannel = PAYMENT_TOKEN_OUT, async = true.toString())
-    suspend fun genPaymentToken(@Payload payload: PaymentTokenRequest): PaymentTokenResponse = paymentService.generatePaymentToken(payload)
+    suspend fun genPaymentToken(@Payload payload: PaymentTokenRequest): PaymentTokenResponse {
+        logger.debug("doing generate payment token")
+        return paymentService.generatePaymentToken(payload)
+    }
 
     @Bean
-    suspend fun preparePayment(@Qualifier(PAYMENT_TOKEN_OUT) paymentTokenOut: MessageChannel): IntegrationFlow =
+    suspend fun preparePayment(@Qualifier(PAYMENT_TOKEN_OUT) paymentTokenOut: MessageChannel,
+                               @Qualifier(PAYMENT_IN) paymentIn: MessageChannel): IntegrationFlow =
         integrationFlow(paymentTokenOut) {
             log<String>(LoggingHandler.Level.INFO, "com.jolly") {
                 "done payment token ${it.payload}"
+            }
+            filter<PaymentTokenResponse> {
+                it.respCode == "0000"
             }
             handle<PaymentTokenResponse> { payload, headers ->
                 toPaymentRequestParams(
                     payload, headers[CARD_NO] as String,
                     headers[EXPIRY_MONTH] as String, headers[EXPIRY_YEAR] as String)
             }
-            channel(PAYMENT_IN)
+            channel(paymentIn)
+        }
+
+    @ServiceActivator(inputChannel = PAYMENT_IN, outputChannel = PAYMENT_OUT, async = true.toString())
+    suspend fun doPayment(@Payload payload: PaymentRequestParams): PaymentResponseParams {
+        logger.debug("doing payment")
+        return paymentService.doPayment(payload)
+    }
+
+    @Bean
+    suspend fun preparePaymentInquiry(@Qualifier(PAYMENT_OUT) paymentOut: MessageChannel,
+                                      @Qualifier(PAYMENT_INQUIRY_IN) paymentInquiryIn: MessageChannel): IntegrationFlow =
+        integrationFlow(paymentOut) {
+            log<String>(LoggingHandler.Level.INFO, "com.jolly") {
+                "done payment ${it.payload}"
+            }
+            handle<PaymentResponseParams> { payload, headers ->
+                toPaymentInquiryRequest(
+                    payload, headers[MERCHANT_ID] as String)
+            }
+            channel(paymentInquiryIn)
+        }
+
+    @ServiceActivator(inputChannel = PAYMENT_INQUIRY_IN, outputChannel = PAYMENT_INQUIRY_OUT, async = true.toString())
+    suspend fun doPaymentInquiry(@Payload payload: PaymentInquiryRequest): PaymentInquiryResponse {
+        logger.debug("doing payment inquiry")
+        return paymentInquiryService.doPaymentInquiry(payload)
+    }
+
+    @Bean
+    suspend fun outBoundPaymentPipeline(@Qualifier(PAYMENT_REPLIES_CHANNEL) paymentReplies: MessageChannel,
+                                @Qualifier(PAYMENT_INQUIRY_OUT) paymentInquiryOut: MessageChannel): IntegrationFlow =
+        integrationFlow(paymentInquiryOut) {
+            log<String>(LoggingHandler.Level.INFO, "com.jolly") {
+                "done payment process ${it.payload} ${it.headers}"
+            }
+            transform<PaymentInquiryResponse> {
+                PaymentResponse(
+                    merchantID = it.merchantID,
+                    invoiceNo = it.invoiceNo,
+                    amount = it.amount,
+                    currencyCode = it.currencyCode,
+                    transactionDateTime = it.transactionDateTime,
+                    agentCode = it.agentCode,
+                    channelCode = it.channelCode,
+                    referenceNo = it.referenceNo,
+                    cardNo = it.cardNo,
+                    issuerCountry = it.issuerCountry,
+                    issuerBank = it.issuerBank,
+                    eci = it.eci,
+                    paymentScheme = it.paymentScheme,
+                    respCode = it.respCode!!,
+                    respDesc = it.respDesc!!
+                )
+            }
+            channel(paymentReplies)
         }
 
     @Transformer
@@ -115,32 +177,30 @@ class Non3DSPaymentPipeline(
                                        @Header(EXPIRY_MONTH) expiryMonth: String, @Header(EXPIRY_YEAR) expiryYear: String) : PaymentRequestParams {
         val paymentToken = payload.paymentToken.takeIf { !it.isNullOrBlank() } ?: throw IllegalStateException("payment token is mandatory")
         return PaymentRequestParams(
-            paymentToken,
-            PaymentParams(
-                PaymentCode(
+            paymentToken = paymentToken,
+            paymentParams = PaymentParams(
+                paymentCode = PaymentCode(
                     CREDIT_CARD_CHANNEL
                 ),
-                PaymentData(
+                paymentData = PaymentData(
                     cardNo = cardNo,
                     expiryMonth = expiryMonth,
                     expiryYear = expiryYear
                 )
             ),
-            LOCALE
+            locale = LOCALE
         )
     }
 
-    @ServiceActivator(inputChannel = PAYMENT_IN, outputChannel = PAYMENT_OUT, async = true.toString())
-    suspend fun doPayment(@Payload payload: PaymentRequestParams): PaymentResponseParams = paymentService.doPayment(payload)
-
-    @Bean
-    suspend fun outBoundPaymentPipeline(@Qualifier(PAYMENT_REPLIES_CHANNEL) paymentReplies: MessageChannel,
-                                @Qualifier(PAYMENT_OUT) paymentOut: MessageChannel): IntegrationFlow =
-        integrationFlow(paymentOut) {
-            log<String>(LoggingHandler.Level.INFO, "com.jolly") {
-                "done payment process ${it.payload} ${it.headers}"
-            }
-            channel(paymentReplies)
-        }
+    @Transformer
+    private fun toPaymentInquiryRequest(@Payload payload: PaymentResponseParams, @Header(MERCHANT_ID) merchantId: String): PaymentInquiryRequest {
+        val invoiceNo = payload.invoiceNo.takeIf { !it.isNullOrBlank() } ?: throw IllegalStateException("invoice no is mandatory")
+        return PaymentInquiryRequest(
+            merchantID = merchantId,
+            invoiceNo = invoiceNo,
+            locale = LOCALE
+        )
+    }
 }
+
 

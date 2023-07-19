@@ -16,5 +16,5 @@ interface PaymentClient {
         const val PAYMENT_REPLIES_CHANNEL = "payment.reply"
     }
     @Gateway(requestChannel = PAYMENT_REQUESTS_CHANNEL, replyChannel = PAYMENT_REPLIES_CHANNEL)
-    suspend fun doNon3DSPayment(request: PaymentRequest) : PaymentResponseParams
+    suspend fun doNon3DSPayment(request: PaymentRequest) : PaymentResponse
 }

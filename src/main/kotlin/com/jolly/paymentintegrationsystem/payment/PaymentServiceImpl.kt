@@ -3,11 +3,14 @@ package com.jolly.paymentintegrationsystem.payment
 import com.auth0.jwt.JWT
 import com.jolly.paymentintegrationsystem.extensions.exchangeToken
 import com.jolly.paymentintegrationsystem.extensions.getClaimAsString
+import com.jolly.paymentintegrationsystem.extensions.verifyPayload
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.reactive.function.client.awaitExchange
 import reactor.core.publisher.Mono
 
 /**
@@ -24,12 +27,10 @@ class PaymentServiceImpl(
         val logger = LoggerFactory.getLogger(this::class.java)
     }
     override suspend fun generatePaymentToken(request: PaymentTokenRequest): PaymentTokenResponse {
-        logger.info("generating payment token start")
         val paymentTokenRequest = request.validate()
         val response: PaymentTokenResponse = webClient.exchangeToken(paymentTokenRequest, merchantSecretKey, paymentTokenUrl, PaymentTokenResponse::class.java)
         val jwt = JWT.decode(response.payload)
         val responseData = jwt.claims
-        logger.info("generating payment token end")
 
         return PaymentTokenResponse(
             paymentToken = responseData.getClaimAsString("paymentToken"),
@@ -45,7 +46,16 @@ class PaymentServiceImpl(
         return webClient.post()
             .uri(paymentUrl)
             .body(Mono.just(paymentRequestParams), PaymentRequestParams::class.java)
-            .retrieve()
-            .awaitBody() //TODO: await exchange and handle diff status codes
+            .awaitExchange { responseEntity ->
+                val responseBody = responseEntity.awaitBody<PaymentResponseParams>()
+                if (responseEntity.statusCode().isError) {
+                    throw RestClientException("Payment request failed with status code: ${responseEntity.statusCode()}")
+                } else if (responseBody.invoiceNo.isNullOrEmpty()) {
+                    throw RestClientException("Invoice no received is null or empty, respCode: ${responseBody.respCode}, respDesc: ${responseBody.respDesc}")
+                }
+                else {
+                    responseBody
+                }
+            }
     }
 }
