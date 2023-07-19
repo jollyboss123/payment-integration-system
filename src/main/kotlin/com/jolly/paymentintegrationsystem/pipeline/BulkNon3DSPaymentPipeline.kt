@@ -1,6 +1,7 @@
 package com.jolly.paymentintegrationsystem.pipeline
 
 import com.jolly.paymentintegrationsystem.PaymentClient.Companion.BULK_PAYMENT_REQUESTS_CHANNEL
+import com.jolly.paymentintegrationsystem.PaymentClient.Companion.PAYMENT_REPLIES_CHANNEL
 import com.jolly.paymentintegrationsystem.PaymentClient.Companion.PAYMENT_REQUESTS_CHANNEL
 import com.jolly.paymentintegrationsystem.domain.PaymentRequest
 import org.slf4j.Logger
@@ -12,13 +13,17 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.amqp.dsl.Amqp
 import org.springframework.integration.annotation.ServiceActivator
+import org.springframework.integration.channel.NullChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.*
+import org.springframework.integration.handler.LoggingHandler
 import org.springframework.integration.json.ObjectToJsonTransformer
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.support.ErrorMessage
+import org.springframework.messaging.support.MessageBuilder
+
 
 /**
  * @author jolly
@@ -33,6 +38,9 @@ class BulkNon3DSPaymentPipeline {
     @Bean(name = [BULK_PAYMENT_REQUESTS_CHANNEL])
     fun bulkPaymentIn(): MessageChannel = MessageChannels.direct().`object`
 
+//    @Bean(name = ["nullChannel"])
+//    fun nullChannel(): MessageChannel = NullChannel()
+
     @Bean
     @ServiceActivator(inputChannel = "errorChannel")
     fun errorChannelHandler(): MessageHandler {
@@ -46,11 +54,10 @@ class BulkNon3DSPaymentPipeline {
     fun outboundMqFlow(template: AmqpTemplate,
                        @Qualifier(BULK_PAYMENT_REQUESTS_CHANNEL) bulkPaymentIn: MessageChannel): IntegrationFlow =
         integrationFlow(bulkPaymentIn) {
-            log()
             transform(Transformers.toJson(ObjectToJsonTransformer.ResultType.STRING))
-//            handle<PaymentRequest> { payload, headers ->
-//                logger.info("payload sent: $payload, id: ${headers.id}")
-//            }
+            log<String>(LoggingHandler.Level.INFO, "com.jolly") {
+                "sending payload ${it.payload}"
+            }
             handle(Amqp.outboundAdapter(template)
                 .exchangeName(BULK_PAYMENT_REQUESTS_CHANNEL)
                 .routingKey(BULK_PAYMENT_REQUESTS_CHANNEL)
@@ -60,11 +67,14 @@ class BulkNon3DSPaymentPipeline {
     @Bean
     fun inboundMqFlow(connectionFactory: ConnectionFactory): IntegrationFlow =
         integrationFlow(Amqp.inboundAdapter(connectionFactory, BULK_PAYMENT_REQUESTS_CHANNEL)) {
-            log()
+            log<String>(LoggingHandler.Level.INFO, "com.jolly") {
+                "received payload ${it.payload}"
+            }
             transform(Transformers.fromJson(PaymentRequest::class.java))
-//            handle<PaymentRequest> { payload, headers ->
-//                logger.info("payload received: $payload, id: ${headers.id}")
-//            }
             channel(PAYMENT_REQUESTS_CHANNEL)
         }
+
+    @Bean
+    @ServiceActivator(inputChannel = PAYMENT_REPLIES_CHANNEL)
+    fun handlePaymentReply() = MessageHandler { message -> logger.debug("done") }
 }

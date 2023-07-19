@@ -23,13 +23,16 @@ class PaymentController(
     @CircuitBreaker(name = PAYMENT_CIRCUIT_BREAKER_NAME)
     @PostMapping("/2c2p")
     suspend fun non3DSPayment(@RequestBody paymentRequest: PaymentRequest): PaymentResponse {
-        return paymentClient.doNon3DSPayment(paymentRequest)
+        val request = paymentRequest.validate()
+        return paymentClient.doNon3DSPayment(request)
     }
 
 //    @CircuitBreaker(name = PAYMENT_CIRCUIT_BREAKER_NAME)
     @PostMapping("/2c2p/bulk")
     suspend fun bulkNon3DSPayment(@RequestBody requests: PaymentRequest): PaymentRequest {
-        paymentClient.doBulkNon3DSPayment(requests)
-        return requests
+//        val paymentRequests = requests.map { it.validate() }
+        val paymentRequests = requests.validate()
+        paymentClient.doBulkNon3DSPayment(paymentRequests)
+        return paymentRequests
     }
 }

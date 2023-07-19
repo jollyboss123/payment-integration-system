@@ -85,11 +85,11 @@ class Non3DSPaymentPipeline(
             }
             transform<PaymentRequest> {
                 PaymentTokenRequest(
-                    merchantID = it.merchantID!!,
-                    invoiceNo = it.invoiceNo!!,
-                    description = it.description!!,
+                    merchantID = it.merchantID,
+                    invoiceNo = it.invoiceNo,
+                    description = it.description,
                     amount = it.amount,
-                    currencyCode = it.currencyCode!!,
+                    currencyCode = it.currencyCode,
                     paymentChannel = it.paymentChannel,
                     request3DS = false
                 )

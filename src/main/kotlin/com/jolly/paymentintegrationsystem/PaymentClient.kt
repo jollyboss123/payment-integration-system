@@ -19,5 +19,5 @@ interface PaymentClient {
     suspend fun doNon3DSPayment(request: PaymentRequest) : PaymentResponse
 
     @Gateway(requestChannel = BULK_PAYMENT_REQUESTS_CHANNEL)
-    suspend fun doBulkNon3DSPayment(requests: PaymentRequest)
+    fun doBulkNon3DSPayment(requests: PaymentRequest)
 }

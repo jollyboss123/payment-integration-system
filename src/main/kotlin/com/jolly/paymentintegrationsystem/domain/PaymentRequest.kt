@@ -23,7 +23,6 @@ data class PaymentRequest @JsonCreator constructor(
     @JsonProperty("expiryMonth") val expiryMonth: String,
     @JsonProperty("expiryYear") val expiryYear: String
 ) {
-//    constructor() : this("", "", "", BigDecimal.ONE, "", emptyList(), false, null, "","", "")
     fun validate(): PaymentRequest {
         Validation {
             PaymentRequest::merchantID required {}

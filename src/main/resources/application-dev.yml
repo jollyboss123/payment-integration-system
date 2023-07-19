@@ -37,5 +37,5 @@ spring:
 logging:
   level:
     com.jolly: TRACE
-    org.springframework.amqp: DEBUG
-    org.springframework.integration: DEBUG
+    org.springframework.amqp: INFO
+    org.springframework.integration: INFO

@@ -65,7 +65,7 @@ class CircuitBreakerIntegrationTest(
     fun test() {
         val body = PaymentRequest(
             merchantID = "JT07",
-            invoiceNo = "123456",
+            invoiceNo = "123456-${System.currentTimeMillis()}",
             description = "default desc",
             amount = BigDecimal.valueOf(100),
             currencyCode = "MYR",
@@ -101,7 +101,7 @@ class CircuitBreakerIntegrationTest(
 //        ))
         val body = PaymentRequest(
             merchantID = "JT07",
-            invoiceNo = "123456",
+            invoiceNo = "123456-${System.currentTimeMillis()}",
             description = "default desc",
             amount = BigDecimal.valueOf(100),
             currencyCode = "MYR",
