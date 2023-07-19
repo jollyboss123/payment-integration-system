@@ -1,5 +1,6 @@
 package com.jolly.paymentintegrationsystem
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,12 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 class PaymentController(
     private val paymentClient: PaymentClient
 ) {
-//    @CircuitBreaker(name = "test")
-//    @PostMapping("/2c2p")
-//    suspend fun payment(@RequestBody paymentTokenRequest: PaymentTokenRequest): PaymentTokenResponse {
-//        return paymentService.generatePaymentToken(paymentTokenRequest)
-//    }
-
+    @CircuitBreaker(name = "payment")
     @PostMapping("/2c2p")
     suspend fun non3DSPayment(@RequestBody paymentRequest: PaymentRequest): PaymentResponse {
         return paymentClient.doNon3DSPayment(paymentRequest)
