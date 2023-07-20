@@ -11,6 +11,7 @@
 - [ ] Rabbitmq dead letter queue handling
 - [ ] Rabbitmq retry interceptor
 - [ ] postgres database to persist
+- [ ] r2dbc for non-blocking I/O with database
 - [ ] idempotency key and APIs for all payments
 - [X] circuit breakers on APIs
 - [ ] rate limits on APIs
