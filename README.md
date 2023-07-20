@@ -16,10 +16,12 @@
 - [X] circuit breakers on APIs
 - [ ] rate limits on APIs
 - [ ] API fallback handling
+- [ ] grpc support
 
 ### Reference Documentation
 
 * [Shopify: 10 Tips for Building Resilient Payment Systems](https://shopify.engineering/building-resilient-payment-systems)
 * [Validation](https://www.konform.io)
+* [Doordash: Functional Core, Imperative Shell – Using Structured Concurrency to Write Maintainable gRPC Endpoints in Kotlin](https://doordash.engineering/2022/07/26/functional-core-imperative-shell-using-structured-concurrency-to-write-maintainable-grpc-endpoints-in-kotlin/)
 
 

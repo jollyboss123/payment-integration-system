@@ -120,4 +120,28 @@ class CircuitBreakerIntegrationTest(
             .expectStatus()
             .isOk
     }
+
+    @Test
+    fun newApiTest() {
+        val body = PaymentRequest(
+            merchantID = "JT07",
+            invoiceNo = "123456-${System.currentTimeMillis()}",
+            description = "default desc",
+            amount = BigDecimal.valueOf(100),
+            currencyCode = "MYR",
+            paymentChannel = listOf("CC"),
+            request3DS = false,
+            cardNo = "4111111111111111",
+            expiryMonth = "12",
+            expiryYear = "23"
+        )
+
+        webTestClient.post()
+            .uri("/api/jolly/v1/payment/integration/2c2p/new")
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
 }
